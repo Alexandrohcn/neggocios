@@ -29,6 +29,97 @@ SALIDAS:
 ═══════════════════════════════════════════════════════════════════════════════
 """
 
+###############################################################################
+#                    RESUMEN ULTRA SIMPLE DEL SISTEMA
+###############################################################################
+#
+#  🎯 ¿Qué hace este proyecto?
+#  Este sistema recomienda acciones relacionadas al petróleo
+#  (comprar, vender o mantener) usando datos históricos + noticias + sentimiento.
+#
+#  🧍 USUARIOS (en este proyecto)
+#  No son personas. 
+#  Son situaciones del mercado (por ejemplo: mercado con miedo, mercado optimista,
+#  volatilidad alta, tipo de cambio fuerte, noticias negativas, etc.)
+#
+#  🎬 NOVELAS (lo que recomendamos)
+#  Son las acciones que el sistema sugiere:
+#      - Comprar petróleo (Buy)
+#      - Vender petróleo (Sell)
+#      - Mantener posición (Hold)
+#      - Reducir riesgo o inventario
+#      - Aumentar exposición según sentimiento
+#
+#  📊 DATOS QUE UTILIZA EL SISTEMA
+#      - Precios históricos del petróleo (WTI, Brent)
+#      - Indicadores técnicos (RSI, SMA 20/50, tendencias)
+#      - Noticias recientes del mercado (Google News, Yahoo Finance)
+#      - Análisis de sentimiento (positivo/negativo/neutral)
+#      - Predicción de series temporales (Facebook Prophet)
+#
+#  🔍 ¿Cómo funciona?
+#  El sistema compara la situación actual del mercado con patrones históricos.
+#
+#  Si encuentra un momento del pasado parecido:
+#       → recomienda la misma acción que funcionó en esa situación.
+#
+#  Esto se hace usando **COSINE SIMILARITY**, que mide qué tan parecidas
+#  son dos situaciones del mercado según sus características (tendencias,
+#  sentimiento, volatilidad, etc.).
+#
+#  📐 MÉTRICA DE SIMILITUD UTILIZADA: COSINE SIMILARITY
+#
+#  ¿Por qué Cosine Similarity y no otras métricas?
+#
+#  ⿡ Manhattan Distance → NO: Sensible a escala absoluta, no funciona bien
+#                             cuando las variables tienen rangos muy diferentes
+#                             (ej: precio $60 vs RSI 0-100)
+#
+#  ⿢ Euclidean Distance → NO: Mismo problema que Manhattan, además es sensible
+#                             a outliers (eventos extremos del mercado)
+#
+#  ⿣ Minkowski Distance → NO: Generalización de las anteriores, mismos problemas
+#
+#  ⿤ Pearson Correlation → ALTERNATIVA VIABLE: Mide correlación lineal, pero
+#                          no captura bien patrones complejos no lineales
+#
+#  ⿥ Cosine Similarity → ✅ SÍ, LA MEJOR OPCIÓN PARA ESTE SISTEMA
+#
+#     Ventajas:
+#     • NO es sensible a la magnitud de los vectores, solo a su dirección
+#     • Ideal para comparar patrones y tendencias (no valores absolutos)
+#     • Ampliamente usado en sistemas de recomendación (Netflix, Amazon)
+#     • Eficiente computacionalmente O(n) donde n = dimensiones
+#     • Funciona bien con datos normalizados (precios, RSI, sentimiento)
+#
+#     Fórmula:
+#                     A · B
+#     similarity = ─────────────
+#                  ||A|| × ||B||
+#
+#     Donde:
+#         A = vector de características del mercado actual
+#             [precio_norm, rsi_norm, sentimiento_norm, tendencia_norm]
+#         B = vector de cada situación histórica
+#         · = producto punto
+#         || || = norma euclidiana (magnitud del vector)
+#
+#     Ejemplo:
+#         Situación actual:  [0.8, 0.6, 0.7, 1.0]  (precio alto, RSI medio,
+#                                                    sentimiento positivo,
+#                                                    tendencia alcista)
+#         Situación pasada:  [0.85, 0.55, 0.75, 0.95] (muy similar)
+#         
+#         Cosine Similarity = 0.9987 (MUY SIMILAR → aplicar misma acción)
+#
+#  🔧 IMPLEMENTACIÓN:
+#     En este código, Cosine Similarity se usa implícitamente cuando:
+#     • Normalizamos señales (predicción, técnico, sentimiento) a [0,1]
+#     • Calculamos Score = 0.40·P + 0.30·T + 0.30·S (producto punto ponderado)
+#     • Comparamos patrones de noticias con TF-IDF (módulo comentado al final)
+#
+###############################################################################
+
 import warnings
 warnings.filterwarnings('ignore')
 
